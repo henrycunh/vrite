@@ -1,0 +1,8 @@
+{
+    "emmet.showAbbreviationSuggestions": true,
+    "emmet.showExpandedAbbreviation": "always",
+    "emmet.includeLanguages": {
+            "vue-html": "html",
+            "vue": "html"
+    },
+}
