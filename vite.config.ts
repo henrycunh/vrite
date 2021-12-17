@@ -6,6 +6,7 @@ import Pages from 'vite-plugin-pages'
 import Layouts from 'vite-plugin-vue-layouts'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
+import Icons from 'unplugin-icons/vite'
 
 export default defineConfig({
     resolve: {
@@ -15,6 +16,8 @@ export default defineConfig({
     },
     plugins: [
         Vue(),
+
+        Icons({ compiler: 'vue3' }),
 
         Pages(),
 
@@ -51,7 +54,7 @@ export default defineConfig({
             strict: true,
         },
     },
-
+    
     css: {
         preprocessorOptions: {
             scss: {

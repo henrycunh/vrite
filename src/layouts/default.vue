@@ -7,11 +7,11 @@
 
 <style lang="scss">
 body {
-    background: #f1f1f5;
+    background: $background;
     color: $primary;
-    * {
-        font-family: 'Rubik', sans-serif;
-    }
+    padding: 0;
+    margin: 0;
+    font-family: Rubik, sans-serif;
 }
 
 
