@@ -1,0 +1,72 @@
+$primary: #333;
+$secondary: #666;
+$background: #f1f1f5;
+
+// Import rubik font
+@import url('https://fonts.googleapis.com/css?family=Rubik:300,400,500,700');
+
+// Import inconsolata font
+@import url('https://fonts.googleapis.com/css?family=Inconsolata:400,700');
+
+@mixin link {
+    color: #666;
+    font-weight: 500;
+    text-decoration: none;
+    border-bottom: 2px solid #ccc;
+    transition: 200ms ease-in-out;
+    &:hover {
+        border-color: #aaa;
+    }
+}
+
+@mixin button-style {
+    background: $primary;
+    color: white;
+    font-family: Rubik, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    padding: .75em 1.5em;
+    border-radius: 8px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    outline: none;
+    cursor: pointer;
+    transition: 200ms ease-in-out;
+
+    &:hover {
+        background: lighten($primary, 5%);
+    }
+
+    &:active {
+        transform: scale(0.95);
+        background: darken($primary, 5%);
+    }
+
+    &.--is-secondary {
+        background: $secondary;
+        color: white;
+        &:hover {
+            background: lighten($secondary, 10%);
+        }
+        &:active {
+            background: darken($secondary, 10%);
+            color: darken(white, 10%);
+        }
+    }
+
+    &.--is-outline {
+        background: transparent;
+        color: $secondary;
+        border: 2px solid $secondary;
+        font-weight: 500;
+        &:hover {
+            color: lighten($secondary, 10%);
+            border-color: lighten($secondary, 5%);
+        }
+        &:active {
+            color: darken($secondary, 10%);
+        }
+    }
+}
