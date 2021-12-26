@@ -1,17 +1,18 @@
-# write
-<center>
+# vrite
+<div align="center">
 
-> a simple collaborative note taking application
+> this is going to be a pretty good collaborative text editor, but it's not ready yet...
 
-</center>
+</div>
 
-## Recommended IDE Setup
+## packages
+| name | version |
+|-|-| 
+| [@vrite/ui](./packages/@vrite-ui/README.md) | 0.0.0 | 
+| [@vrite/server](./packages/@vrite-server/README.md) | 0.0.0 | 
 
-- [VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=johnsoncodehk.volar)
+## installation
+> TODO: write installation section
 
-## Getting started
-
-```bash
-yarn
-yarn dev
-```
+## collaborating
+> TODO: write collaborating section
