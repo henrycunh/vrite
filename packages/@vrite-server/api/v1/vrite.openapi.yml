@@ -1,0 +1,562 @@
+openapi: "3.0.0"
+
+# Vrite API information
+info:
+  title: "Vrite API"
+  version: 0.0.1
+  description: "The REST API for interacting with Vrite's resources."
+
+servers:
+  - url: "https://api.vrite.sh"
+    description: "The production server"
+
+
+
+
+paths:
+  # Returns information about the API 
+  /:
+    get:
+      summary: "Returns information about the API"
+      description: |
+        This endpoint returns information about the API, such as the version.
+
+        It's also used to check if the API is up and running, a nifty healthcheck :]
+      responses:
+        200:
+          description: "Successful operation"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                    description: "The version of the API"
+                example:
+                  version: "0.0.1"
+      tags:
+        - "info"
+  
+  /notes:
+
+    # Get all the notes
+    get:
+      summary: "Returns a list of all the notes"
+      description: |
+        ## Overview
+
+        This endpoint returns a list of all the **notes**.
+
+        🔐 **This is a protected route**, meaning that you need to be authenticated to access it.
+
+        ## Filtering
+        ### Search
+        Allows for full-text search of the notes.
+        
+        #### Examples
+        ```bash
+        http "https://api.vrite.sh/notes" "Authorization: Bearer $TOKEN" search==hello
+        ```
+        Will return all the notes that contain the word `hello` in either title or content.
+
+        ### Date range
+        Allows for filtering the notes by date.
+
+        #### Examples
+        ```
+        http "https://api.vrite.sh/notes" "Authorization: Bearer $TOKEN" \
+          from=="2020-01-01" \
+          to=="2020-01-02"
+        ```
+        Will return all the notes that were created between January 1st and 31st of 2020.
+
+        You can leave out the `from` or `to` parameters to get all the notes created before or after the given date.
+
+        ## Ordering
+        Allows for ordering the notes by:
+        - **createdAt** (default)
+        - **updatedAt**
+        - **title**
+
+        #### Examples
+        ```
+        http "https://api.vrite.sh/notes" "Authorization: Bearer $TOKEN" \
+          orderBy==updatedAt
+        ```
+        Will return all the notes ordered by title.
+
+        ## Pagination
+        Allows for paginating the notes, here you can work with the 
+        pagination's **limit**, **offset** and **page**.
+
+        - `limit` is the number of notes you want to get. It defaults to `10`.
+        - `offset` is the number of notes you want to skip. It defaults to `0`.
+        - `page` is the page number. It defaults to `1`.
+
+        #### Examples
+        ```
+        http "https://api.vrite.sh/notes" "Authorization: Bearer $TOKEN"\
+          limit==10 \
+          offset==0 \
+          page==2
+        ```
+        Will return the second page of notes, each page contains 10 notes.
+      responses:
+        200:
+          description: "Successful operation"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Note'
+                  page:
+                    type: integer
+                    description: "The current page"
+                    example: 1
+                  hasNextPage:
+                    type: boolean
+                    description: "Whether there is a next page"
+                    example: true
+                  total:
+                    type: integer
+                    description: "The total number of notes"
+                    example: 100
+      tags:
+        - "notes"
+
+    # Create a new note
+    post:
+      summary: "Creates a new note"
+      description: |
+        ## Overview
+
+        This endpoint creates a new **note**.
+
+        🔐 **This is a protected route**, meaning that you need to be authenticated to access it.
+
+        ## Parameters
+        - **title**: The title of the note.
+        - **content**: The content of the note.
+        - **tags**: The tags of the note. You can pass it as a space separated string or as an array.
+
+        ## Example
+        ```bash
+        http -f POST "https://api.vrite.sh/notes" "Authorization: Bearer $TOKEN" \
+          title="My note" \
+          content="<h1>Hello world!</h1><p>This is my note.</p>" \
+          tags="hello world"
+        ```
+      requestBody:
+        description: "The note to create"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Note'
+              properties:
+                title:
+                  type: string
+                  description: "The title of the note"
+                  required: true
+                content:
+                  type: string
+                  description: "The content of the note"
+      responses:
+        201:
+          description: "Successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+      tags:
+        - "notes"
+  
+  /notes/:id:
+    # Get a specific note
+    get:
+      summary: "Returns a specific note"
+      description: |
+        ## Overview
+
+        This endpoint returns a specific **note**.
+
+        🔐 **This is a protected route**, meaning that you need to be authenticated to access it.
+
+        ## Parameters
+        - **id**: The id of the note.
+
+        ## Example
+        ```bash
+        http "https://api.vrite.sh/notes/5e9f8f8f-b8e7-4f8f-b8e7-4f8f8f8f8f8f" "Authorization: Bearer $TOKEN"
+        ```
+      parameters:
+        - name: id
+          in: path
+          description: "The id of the note"
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: "Successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+      tags:
+        - "notes"
+
+    # Update a note
+    patch:
+      summary: "Updates a specific note"
+      parameters:
+        - name: id
+          in: path
+          description: "The ID of the note to update"
+          required: true
+          schema:
+            type: string
+      description: |
+        ## Overview
+
+        This endpoint updates a **note**.
+
+        🔐 **This is a protected route**, meaning that you need to be authenticated to access it.
+
+        ## Parameters
+        - **title**: The title of the note.
+        - **content**: The content of the note.
+        - **tags**: The tags of the note. You can pass it as a space separated string or as an array.
+        - **permissions**: The permissions of the note.
+        - **visibility**: The visibility of the note.
+
+        ## Example
+        ### Update the title of the note.
+        ```bash
+        http -f PATCH "https://api.vrite.sh/notes/5e9f8f8f-f9c8-4f7b-b8c8-f9c8f9c8f9c8" "Authorization: Bearer $TOKEN" \
+          title="My new note title"
+        ```
+        ### Update the content of the note, creating a new revision.
+        ```bash
+        http -f PATCH "https://api.vrite.sh/notes/5e9f8f8f-f9c8-4f7b-b8c8-f9c8f9c8f9c8" "Authorization: Bearer $TOKEN" \
+          content="<h1>Hello world!</h1><p>This is my new note content.</p>"
+        ```
+      requestBody:
+        description: "The properties of the note that will be updated, none of them are required."
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                title:
+                  type: string
+                  description: "The title of the note"
+                  example: "My note"
+                content:
+                  type: string
+                  description: "The content of the note"
+                  example: "<h1>Hello world!</h1><p>This is my updated note!</p>"
+                tags:
+                  type: array
+                  description: "The tags of the note"
+                  items:
+                    type: string
+                  example: ["my-new-tag", "team:new-team"]
+                permissions:
+                  type: array
+                  description: "The permissions of the note"
+                  items:
+                      $ref: '#/components/schemas/Permission'
+                  example: 
+                    - userId: "5e9f8f8f-f9c8-4f7b-b8c8-f9c8f9c8f9c8"
+                      permission: "read"
+                visibility:
+                  type: string
+                  description: "The visibility of the note"
+                  example: "unlisted"
+      responses:
+        200:
+          description: "Successful operation, returns the updated note."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+      tags:
+        - "notes"
+
+    # Delete a note
+    delete:
+      summary: "Deletes a specific note"
+      parameters:
+        - name: id
+          in: path
+          description: "The ID of the note to delete"
+          required: true
+          schema:
+            type: string
+      description: |
+        ## Overview
+
+        This endpoint deletes a **note**. It's actually a soft delete, so you can use the `/notes/:id/restore` endpoint to restore it.
+
+        🔐 **This is a protected route**, meaning that you need to be authenticated to access it.
+
+
+
+        ## Parameters
+        - **id**: The id of the note.
+
+        ## Example
+        ```bash
+        http -f DELETE "https://api.vrite.sh/notes/5e9f8f8f-f9c8-4f7b-b8c8-f9c8f9c8f9c8" "Authorization: Bearer $TOKEN"
+        ```
+      responses:
+        200:
+          description: "Successful operation"
+      tags:
+        - "notes"
+    
+  # List all revisions of a note
+  /notes/:id/revisions:
+    get:
+      summary: "Returns all revisions of a specific note"
+      parameters:
+        - name: id
+          in: path
+          description: "The ID of the note"
+          required: true
+          schema:
+            type: string
+      description: |
+        ## Overview
+
+        This endpoint returns all **revisions** of a specific **note**.
+
+        🔐 **This is a protected route**, meaning that you need to be authenticated to access it.
+
+        ## Parameters
+        - **id**: The id of the note.
+
+        ## Example
+        ```bash
+        http "https://api.vrite.sh/notes/5e9f8f8f-f9c8-4f7b-b8c8-f9c8f9c8f9c8/revisions" "Authorization: Bearer $TOKEN"
+        ```
+      responses:
+        200:
+          description: "Successful operation"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Revision'
+      tags:
+        - "notes"
+
+  # Get a specific revision of a note
+  /notes/:id/revisions/:revisionId:
+    get:
+      summary: "Returns a specific revision of a specific note"
+      parameters:
+        - name: id
+          in: path
+          description: "The ID of the note"
+          required: true
+          schema:
+            type: string
+        - name: revisionId
+          in: path
+          description: "The ID of the revision"
+          required: true
+          schema:
+            type: string
+      description: |
+        ## Overview
+
+        This endpoint returns a **revision** of a specific **note**.
+
+        🔐 **This is a protected route**, meaning that you need to be authenticated to access it.
+
+        ## Parameters
+        - **id**: The id of the note.
+        - **revisionId**: The id of the revision.
+
+        ## Example
+        ```bash
+        http "https://api.vrite.sh/notes/5e9f8f8f-f9c8-4f7b-b8c8-f9c8f9c8f9c8/revisions/5e9f8f8f-f9c8-4f7b-b8c8-f9c8f9c8f9c8" "Authorization: Bearer $TOKEN"
+        ```
+      responses:
+        200:
+          description: "Successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Revision'
+      tags:
+        - "notes"
+
+  # Restore a revision
+  /notes/:id/revisions/:revisionId/restore:
+    post:
+      summary: "Restores a specific revision of a specific note"
+      parameters:
+        - name: id
+          in: path
+          description: "The ID of the note"
+          required: true
+          schema:
+            type: string
+        - name: revisionId
+          in: path
+          description: "The ID of the revision"
+          required: true
+          schema:
+            type: string
+      description: |
+        ## Overview
+
+        This endpoint restores a **revision** of a specific **note**.
+
+        🔐 **This is a protected route**, meaning that you need to be authenticated to access it.
+
+        ## Parameters
+        - **id**: The id of the note.
+        - **revisionId**: The id of the revision.
+
+        ## Example
+        ```bash
+        http -f POST "https://api.vrite.sh/notes/5e9f8f8f-f9c8-4f7b-b8c8-f9c8f9c8f9c8/revisions/5e9f8f8f-f9c8-4f7b-b8c8-f9c8f9c8f9c8/restore" "Authorization: Bearer $TOKEN"
+        ```
+      responses:
+        200:
+          description: "Successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Revision'
+      tags:
+        - "notes"
+components:
+  # Schema for the Note object
+  schemas:
+    Note:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "f0e4c2f3-1234-5678-90ab-cdef12345678"
+          description: "The unique identifier for the note"
+        title:
+          type: string
+          example: "My first note"
+          description: "The title of the note"
+        content:
+          type: string
+          example: "<h1>Hello world!</h1><p>This is my first note.</p>"
+          description: "The content of the current revision of the note in HTML format"
+        revisions:
+          type: array
+          items:
+            type: string
+          description: "The list the identifiers of the revisions of the note"
+          example: ["f0e4c2f3-1234-5678-90ab-cdef12345678"]
+        createdAt:
+          type: string
+          format: date-time
+          example: "2020-01-01T00:00:00Z"
+          description: "The date and time the note was created"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2020-01-01T00:00:00Z"
+          description: "The date and time the note was last updated"
+        deletedAt:
+          type: string
+          format: date-time
+          example: "2020-01-01T00:00:00Z"
+          description: |
+            The date and time the note was deleted.
+            If the note is not deleted, this field will be null.
+
+            This field serves as a soft-delete mechanism, at set 
+            periods of time, notes that have been deleted for more 
+            than 7 days will be removed from the database.
+        userId:
+          type: string
+          format: uuid
+          example: "f0e4c2f3-1234-5678-90ab-cdef12345678"
+          description: "The unique identifier for the user that created the note"
+        visibility:
+          type: string
+          enum:
+            - "public"
+            - "private"
+            - "unlisted"
+          example: "public"
+          description: "The visibility of the note"
+        permissions:
+          type: array
+          description: "The permissions of the note, will always have the user that created as **admin**"
+          items:
+            $ref: '#/components/schemas/Permission'
+          example:
+            - userId: "f0e4c2f3-1234-5678-90ab-cdef12345678"
+              permission: "admin"
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["team:marketing", "my-project"]
+          description: "The tags that were added to the note"
+    Permission:
+      properties:
+        userId:
+          type: string
+          format: uuid
+          example: "f0e4c2f3-1234-5678-90ab-cdef12345678"
+          description: "The unique identifier for the user that has the permission"
+        permission:
+          type: string
+          enum:
+            - "read"
+            - "write"
+            - "admin"
+          example: "read"
+          description: "The permission that the user has on the note"
+    Revision:
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "f0e4c2f3-1234-5678-90ab-cdef12345678"
+          description: "The unique identifier for the revision"
+        noteId:
+          type: string
+          format: uuid
+          example: "f0e4c2f3-1234-5678-90ab-cdef12345678"
+          description: "The unique identifier for the note that the revision belongs to"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2020-01-01T00:00:00Z"
+          description: "The date and time the revision was created"
+        userId:
+          type: string
+          format: uuid
+          example: "f0e4c2f3-1234-5678-90ab-cdef12345678"
+          description: "The unique identifier for the user that created the revision"
+        content:
+          type: string
+          example: "<h1>Hello world!</h1><p>This is my first note.</p>"
+          description: "The content of the revision in HTML format"
+        
+        # TODO: Implement this
+        # diff:
+        #   type: string
+        #   description: The diff between the current revision and the previous revision
