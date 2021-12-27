@@ -1,0 +1,18 @@
+name = "write"
+type = "webpack"
+account_id = "2e6064de1a3045d6f3a251c5eb8e8289"
+workers_dev = true
+route = ""
+zone_id = ""
+compatibility_date = "2021-11-01"
+target_type = "webpack"
+
+[site]
+bucket = "dist"
+entry-point = "deploy"
+
+[env.production]
+name = "write-app-production"
+zone_id = "6946171c749e2a670ac1f10791b4d447"
+route = "https://write.mangetsu.cloud/*"
+workers_dev = false
